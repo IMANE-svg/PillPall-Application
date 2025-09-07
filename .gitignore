@@ -1,0 +1,8 @@
+# Secrets
+**/firebase-service-account.json
+**/.env
+backend/med-application/med-application/src/main/resources/application.properties
+
+
+# Builds
+android/app/build/
