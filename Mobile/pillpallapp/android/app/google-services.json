@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "825390572263",
+    "project_id": "pillpall-app",
+    "storage_bucket": "pillpall-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:825390572263:android:f382e3d5296fae4ff13842",
+        "android_client_info": {
+          "package_name": "com.pillpallapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWyAYw13ALgJ5pD3rXi71XJnyghqZ4iTw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
