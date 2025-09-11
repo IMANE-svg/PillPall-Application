@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface DoctorProfileRepository extends JpaRepository<DoctorProfile, Long> {
-    @Query("SELECT DISTINCT d.specialty FROM DoctorProfile d WHERE d.specialty IS NOT NULL")
-
+    @Query("SELECT d FROM DoctorProfile d WHERE d.user.id = :userId")
     Optional<DoctorProfile> findByUserId(Long userId);
 }

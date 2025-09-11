@@ -11,6 +11,7 @@ import java.util.List;
 @Entity @Table(name="prescriptions")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Prescription {
+
     @Id @GeneratedValue(strategy=GenerationType.IDENTITY) private Long id;
     @ManyToOne @JoinColumn(name="patient_id", nullable=false) private PatientProfile patient;
     @ManyToOne @JoinColumn(name="doctor_id", nullable=false) private DoctorProfile doctor;
@@ -22,4 +23,5 @@ public class Prescription {
     private List<DoseTime> doseTimes;
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
+
 }

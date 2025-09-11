@@ -6,6 +6,7 @@ import com.pillpall.med_application.ml.AnomalyDetectionRepository;
 import com.pillpall.med_application.ml.PatientAdherence;
 import com.pillpall.med_application.ml.PatientAdherenceRepository;
 import com.pillpall.med_application.prescriptions.Prescription;
+import com.pillpall.med_application.prescriptions.PrescriptionDTO;
 import com.pillpall.med_application.prescriptions.PrescriptionRepository;
 import com.pillpall.med_application.users.*;
 import lombok.Data;
@@ -32,6 +33,7 @@ public class DoctorController {
     private final PatientAdherenceRepository adherenceRepository;
     private final UserRepository userRepository;
     private final AnomalyDetectionRepository anomalyDetectionRepository;
+    private final PatientProfileRepository patientRepository;
 
     //Endpoint publique pour Afficher les médecins aux patients pendant l'inscription
 
@@ -81,13 +83,13 @@ public class DoctorController {
         return ResponseEntity.ok(stats);
     }
 
-    //Les observances
+    //Les observances par patient
 
     @GetMapping("/patients/{patientId}/observance")
     public ResponseEntity<?> getPatientObservance(
             @AuthenticationPrincipal String email,
             @PathVariable Long patientId,
-            @RequestParam(defaultValue = "7") int days) {
+            @RequestParam(defaultValue = "7") int days){
 
         var user = userRepository.findByEmail(email).orElseThrow();
         var doctor = doctorRepository.findByUserId(user.getId()).orElseThrow();
@@ -120,23 +122,14 @@ public class DoctorController {
     public ResponseEntity<?> getDoctorPatients(@AuthenticationPrincipal String email) {
         var user = userRepository.findByEmail(email).orElseThrow();
         var doctor = doctorRepository.findByUserId(user.getId()).orElseThrow();
-
-        List<PatientProfile> patients = prescriptionRepository.findDistinctPatientsByDoctorId(doctor.getId());
-
+        List<PatientProfile> patients = patientRepository.findByDoctorId(doctor.getId());
         List<PatientInfo> patientInfos = patients.stream()
-                .map(patient -> {
-                    Optional<PatientAdherence> latestAdherence = adherenceRepository
-                            .findLatestByPatientId(patient.getId());
-
-                    return new PatientInfo(
-                            patient.getId(),
-                            patient.getUser().getFullName(),
-                            latestAdherence.map(PatientAdherence::getAdherenceRate).orElse(0.0),
-                            latestAdherence.map(PatientAdherence::getSegment).orElse("UNKNOWN")
-                    );
-                })
+                .map(patient -> new PatientInfo(
+                        patient.getId(),
+                        patient.getUser().getFullName(),
+                        patient.getUser().getEmail()
+                ))
                 .collect(Collectors.toList());
-
         return ResponseEntity.ok(patientInfos);
     }
 
@@ -158,24 +151,45 @@ public class DoctorController {
     public ResponseEntity<?> getHistory(@AuthenticationPrincipal String email) {
         var user = userRepository.findByEmail(email).orElseThrow();
         var doctor = doctorRepository.findByUserId(user.getId()).orElseThrow();
-        return ResponseEntity.ok(prescriptionRepository.findByDoctorIdOrderByCreatedAtDesc(doctor.getId()));
+
+        List<Prescription> prescriptions = prescriptionRepository.findByDoctorIdOrderByCreatedAtDesc(doctor.getId());
+        List<PrescriptionDTO> prescriptionDTOs = prescriptions.stream()
+                .map(p -> new PrescriptionDTO(
+                        p.getId(),
+                        p.getMedicationName(),
+                        p.getDosage(),
+                        p.getStartDate(),
+                        p.getEndDate(),
+                        p.getPatient().getUser().getFullName(),
+                        p.getPatient().getUser().getEmail(),
+                        p.getCreatedAt()
+                ))
+                .toList();
+
+        return ResponseEntity.ok(prescriptionDTOs);
     }
 
     // DTO Classes
     @Data
     public static class ObservanceData {
-        private final Instant scheduledTime;
+        private final String scheduledTime;
         private final String status;
-        private final Instant actualTime;
+        private final String actualTime;
         private final String medication;
+
+        public ObservanceData(Instant scheduledTime, String status, Instant actualTime, String medication) {
+            this.scheduledTime = scheduledTime != null ? scheduledTime.toString() : null; // Format ISO
+            this.status = status;
+            this.actualTime = actualTime != null ? actualTime.toString() : null; // Format ISO
+            this.medication = medication;
+        }
     }
 
     @Data
     public static class PatientInfo {
         private final Long id;
         private final String fullName;
-        private final Double adherenceRate;
-        private final String segment;
+        private final String email;
     }
 
     @Data

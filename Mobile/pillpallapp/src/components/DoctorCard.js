@@ -1,27 +1,24 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const DoctorCard = ({ doctor, onEdit, onDelete, onAdd }) => {
   return (
     <View style={styles.container}>
-      <View>
-        <Text style={styles.text}>{doctor.user.fullName}</Text>
-        <Text style={styles.text}>{doctor.specialty?.name}</Text>
+      <View style={styles.info}>
+        <Text style={styles.text}>{doctor.fullName}</Text>
+        <Text style={styles.subText}>{doctor.specialty?.name || 'Non spécifié'}</Text>
       </View>
       <View style={styles.actions}>
         {onEdit && (
           <TouchableOpacity onPress={() => onEdit(doctor)}>
-            <Text style={styles.edit}>Modifier</Text>
+            <Icon name="edit" size={20} color="#1E40AF" style={styles.actionIcon} />
           </TouchableOpacity>
         )}
-        {onDelete && (
-          <TouchableOpacity onPress={() => onDelete(doctor.id)}>
-            <Text style={styles.delete}>Supprimer</Text>
-          </TouchableOpacity>
-        )}
+        
         {onAdd && (
           <TouchableOpacity onPress={() => onAdd(doctor.id)}>
-            <Text style={styles.add}>Ajouter</Text>
+            <Icon name="add" size={20} color="#16A34A" style={styles.actionIcon} />
           </TouchableOpacity>
         )}
       </View>
@@ -33,17 +30,33 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 8,
+    alignItems: 'center',
+    padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: '#E5E7EB',
+    backgroundColor: '#F8F8F8',
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  info: {
+    flex: 1,
   },
   text: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1E40AF',
+  },
+  subText: {
+    fontSize: 14,
     color: '#6B7280',
   },
   actions: {
     flexDirection: 'row',
   },
-  edit: {
+  actionIcon: {
+    marginLeft: 12,
+  },
+  edit: { 
     color: '#1E40AF',
     marginRight: 16,
   },
@@ -52,7 +65,7 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   add: {
-    color: '#16A34A', // vert
+    color: '#16A34A',
   },
 });
 

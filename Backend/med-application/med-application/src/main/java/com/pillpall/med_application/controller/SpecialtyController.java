@@ -24,7 +24,7 @@ public class SpecialtyController {
         return repository.findAll();
     }
 
-    //Les endpoints pour la gestion des spécialités par le médecin : CRUD
+    //Les endpoints pour la gestion des spécialités par l' administrateur : CRUD
 
     @GetMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -49,12 +49,7 @@ public class SpecialtyController {
         return ResponseEntity.ok(specialty.getId());
     }
 
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> delete(@PathVariable Long id) {
-        repository.deleteById(id);
-        return ResponseEntity.ok(Map.of("message", "Specialty deleted"));
-    }
+
 
     @Data
     public static class SpecialtyReq {

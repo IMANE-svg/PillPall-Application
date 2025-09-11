@@ -8,6 +8,24 @@ export const getUserRole = async () => {
   return decoded.roles[0]; // ROLE_DOCTOR, ROLE_PATIENT, ROLE_ADMIN
 };
 
+export const getToken = async () => {
+  try {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) {
+      throw new Error('No token found');
+    }
+    return token;
+  } catch (error) {
+    console.error('Erreur getToken:', error);
+    throw error;
+  }
+};
+
 export const logout = async () => {
-  await AsyncStorage.removeItem('token');
+  try {
+    await AsyncStorage.removeItem('token');
+  } catch (error) {
+    console.error('Erreur logout:', error);
+    throw error;
+  }
 };

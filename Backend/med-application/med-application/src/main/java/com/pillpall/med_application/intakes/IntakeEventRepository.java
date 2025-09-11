@@ -9,13 +9,16 @@ public interface IntakeEventRepository extends JpaRepository<IntakeEvent, Long> 
 
     List<IntakeEvent> findByStatusAndScheduledAtBefore(IntakeEvent.Status status, Instant before);
 
-    List<IntakeEvent> findByPrescriptionPatientIdAndScheduledAtAfter(Long id, Instant startDate);
-
-    List<IntakeEvent> findByPrescriptionPatientIdAndScheduledAtBetweenAndStatus(Long patientId, Instant now, Instant next24Hours, IntakeEvent.Status status);
 
     List<IntakeEvent> findByPrescriptionPatientId(Long patientId);
 
     List<IntakeEvent> findByPrescriptionPatientIdAndStatus(Long patientId, IntakeEvent.Status status);
 
     List<IntakeEvent> findByPrescriptionPatientIdAndScheduledAtBetween(Long patientId, Instant todayStart, Instant tomorrowStart);
+
+    void deleteByPrescriptionId(Long id);
+    List<IntakeEvent> findByPrescriptionPatientIdAndScheduledAtAfter(Long patientId, Instant startDate);
+    List<IntakeEvent> findByPrescriptionPatientIdAndScheduledAtBetweenAndStatus(
+            Long patientId, Instant start, Instant end, IntakeEvent.Status status);
+    Optional<IntakeEvent> findByPrescriptionIdAndScheduledAt(Long prescriptionId, Instant scheduledAt);
 }

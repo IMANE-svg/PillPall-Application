@@ -3,12 +3,15 @@ import { View, Text, StyleSheet } from 'react-native';
 import Header from '../../components/Header';
 import { getAdminStats } from '../../api/admin';
 import { logout } from '../../utils/auth';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const AdminHomeScreen = ({ navigation }) => {
   const [stats, setStats] = useState({});
 
   useEffect(() => {
-    getAdminStats().then((res) => setStats(res.data)).catch(() => {});
+    getAdminStats()
+      .then((res) => setStats(res.data))
+      .catch(() => Alert.alert('Erreur', 'Impossible de charger les statistiques'));
   }, []);
 
   return (
@@ -22,9 +25,26 @@ const AdminHomeScreen = ({ navigation }) => {
       />
       <View style={styles.content}>
         <Text style={styles.title}>Tableau de bord</Text>
-        <Text>Total médecins: {stats.totalDoctors || 0}</Text>
-        <Text>Total patients: {stats.totalPatients || 0}</Text>
-        <Text>Utilisateurs actifs: {stats.activeUsers || 0}</Text>
+        <View style={styles.card}>
+          <Icon name="local-hospital" size={30} color="#1E40AF" style={styles.cardIcon} />
+          <Text style={styles.cardText}>Médecins: {stats.totalDoctors || 0}</Text>
+        </View>
+        <View style={styles.card}>
+          <Icon name="people" size={30} color="#1E40AF" style={styles.cardIcon} />
+          <Text style={styles.cardText}>Patients: {stats.totalPatients || 0}</Text>
+        </View>
+        <View style={styles.card}>
+          <Icon name="person" size={30} color="#1E40AF" style={styles.cardIcon} />
+          <Text style={styles.cardText}>Utilisateurs: {stats.totalUsers || 0}</Text>
+        </View>
+        <View style={styles.card}>
+          <Icon name="check-circle" size={30} color="#1E40AF" style={styles.cardIcon} />
+          <Text style={styles.cardText}>Actifs: {stats.activeUsers || 0}</Text>
+        </View>
+        <View style={styles.card}>
+          <Icon name="category" size={30} color="#1E40AF" style={styles.cardIcon} />
+          <Text style={styles.cardText}>Spécialités: {stats.totalSpecialties || 0}</Text>
+        </View>
       </View>
     </View>
   );
@@ -39,10 +59,32 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#1E40AF',
-    marginBottom: 16,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#F0F4F8',
+    borderRadius: 8,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cardIcon: {
+    marginRight: 12,
+  },
+  cardText: {
+    fontSize: 16,
+    color: '#333333',
+    fontWeight: '600',
   },
 });
 

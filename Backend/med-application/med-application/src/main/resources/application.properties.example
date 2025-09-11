@@ -1,0 +1,40 @@
+# Exemple de fichier application.properties
+spring.application.name=med-application
+
+# Database
+spring.datasource.url=jdbc:postgresql://localhost:5432/your_database
+spring.datasource.username=your_username
+spring.datasource.password=your_password
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# JPA
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.jdbc.time_zone=Africa/Casablanca
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.show-sql=true
+
+# Mail
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=your_email@gmail.com
+spring.mail.password=your_email_password
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+
+# Logging
+logging.level.com.pillpall=INFO
+
+# Application config
+app.security.jwt.secret=your_jwt_secret
+app.security.jwt.expirationSeconds=3600
+app.notifications.intakeWindowMinutes=60
+app.fcm.credentialsPath=classpath:firebase-service-account.json
+app.fcm.projectId=your_fcm_project_id
+app.twilio.accountSid=your_twilio_account_sid
+app.twilio.authToken=your_twilio_auth_token
+app.twilio.fromNumber=your_twilio_phone_number
+
+logging.level.root=INFO
+logging.level.org.springframework.web=DEBUG
+ml.service.base-url=http://localhost:8000

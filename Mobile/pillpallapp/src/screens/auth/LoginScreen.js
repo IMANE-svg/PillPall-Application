@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import { login, getUserRole } from '../../api/auth';
+import { initFCM } from '../../utils/fcm';
+import Icon from 'react-native-vector-icons/MaterialIcons'; 
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -19,6 +21,9 @@ const LoginScreen = ({ navigation }) => {
       const token = await login(email, password);
       console.log('Login successful, token:', token);
       
+      await initFCM();
+      console.log('FCM initialized after login');
+
       const role = await getUserRole();
       console.log('User role:', role);
       
@@ -52,24 +57,30 @@ const LoginScreen = ({ navigation }) => {
       
       <Text style={styles.title}>Connexion</Text>
       
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="#666"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+      <View style={styles.inputContainer}>
+        <Icon name="email" size={24} color="#1E40AF" style={styles.icon} />
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          placeholderTextColor="#666"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+      </View>
       
-      <TextInput
-        style={styles.input}
-        placeholder="Mot de passe"
-        placeholderTextColor="#666"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+      <View style={styles.inputContainer}>
+        <Icon name="lock" size={24} color="#1E40AF" style={styles.icon} />
+        <TextInput
+          style={styles.input}
+          placeholder="Mot de passe"
+          placeholderTextColor="#666"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+      </View>
       
       <TouchableOpacity 
         style={[styles.loginButton, loading && styles.loginButtonDisabled]}
@@ -95,36 +106,45 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     justifyContent: 'center',
-    padding: 16
+    padding: 16,
   },
   logo: {
     width: 150,
     height: 150,
     alignSelf: 'center',
-    marginBottom: 24
+    marginBottom: 24,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#1E40AF',
     marginBottom: 24,
-    textAlign: 'center'
+    textAlign: 'center',
   },
-  input: {
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#1E40AF',
-    padding: 12,
-    marginBottom: 16,
     borderRadius: 6,
+    marginBottom: 16,
+    backgroundColor: '#FFFFFF',
+  },
+  icon: {
+    marginLeft: 10,
+  },
+  input: {
+    flex: 1,
+    padding: 12,
     fontSize: 16,
-    backgroundColor: '#FFFFFF'
+    color: '#000',
   },
   loginButton: {
     backgroundColor: '#1E40AF',
     padding: 14,
     borderRadius: 6,
     alignItems: 'center',
-    marginTop: 8
+    marginTop: 8,
   },
   loginButtonDisabled: {
     backgroundColor: '#93C5FD',
@@ -132,13 +152,13 @@ const styles = StyleSheet.create({
   loginButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600'
+    fontWeight: '600',
   },
   registerLink: {
     color: '#1E40AF',
     marginTop: 16,
     textAlign: 'center',
-    fontSize: 14
+    fontSize: 14,
   },
 });
 

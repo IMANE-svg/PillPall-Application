@@ -85,7 +85,7 @@ public class NotificationService {
         long taken = todayEvents.stream().filter(e -> e.getStatus() == IntakeEvent.Status.CONFIRMED).count();
 
         String summary = String.format(
-                "📊 Résumé du jour: %d prises effectuées, %d oubliées. Taux d'observance: %.1f%%",
+                " Résumé du jour: %d prises effectuées, %d oubliées. Taux d'observance: %.1f%%",
                 taken, missed, (taken + missed > 0 ? (double) taken / (taken + missed) * 100 : 100)
         );
 

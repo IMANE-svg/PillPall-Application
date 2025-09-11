@@ -22,4 +22,6 @@ public interface AnomalyDetectionRepository extends JpaRepository<Anomaly, Long>
         return findRecentAnomaliesByPatientId(patientId, sevenDaysAgo);
     }
 
+    @Query("SELECT a FROM Anomaly a WHERE a.patientId = :patientId AND a.detectedAt BETWEEN :start AND :end")
+    List<Anomaly> findAnomaliesByPatientIdAndDateRange(@Param("patientId") Long patientId, @Param("start") Instant start, @Param("end") Instant end);
 }

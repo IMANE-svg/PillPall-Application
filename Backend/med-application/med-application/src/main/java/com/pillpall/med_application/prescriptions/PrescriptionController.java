@@ -2,6 +2,7 @@ package com.pillpall.med_application.prescriptions;
 
 import com.pillpall.med_application.service.OcrService;
 import com.pillpall.med_application.users.*;
+import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -10,9 +11,11 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/prescriptions")
@@ -33,7 +36,7 @@ public class PrescriptionController {
         var doctor = doctors.findByUserId(user.getId()).orElseThrow();
         var patient = patients.findById(req.getPatientId()).orElseThrow();
 
-        // Vérif si le patient est suivi par ce doctor (via nouvelle relation)
+        // Vérifier si le patient est suivi par ce doctor
         if (!patient.getDoctors().contains(doctor)) {
             return ResponseEntity.badRequest().body("Patient not under your care");
         }
@@ -45,52 +48,85 @@ public class PrescriptionController {
                 .dosage(req.getDosage())
                 .startDate(req.getStartDate())
                 .endDate(req.getEndDate())
-                .doseTimes(req.getDoseTimes().stream()
-                        .map(t -> DoseTime.builder().hour(t.getHour()).minute(t.getMinute()).build()).toList())
+                .createdAt(Instant.now())
                 .build();
+
+        // Créer les DoseTime et lier à la prescription
+
+        List<DoseTime> doseTimes = req.getDoseTimes().stream()
+                .map(t -> DoseTime.builder()
+                        .hour(t.getHour())
+                        .minute(t.getMinute())
+                        .prescription(p)
+                        .build())
+                .toList();
+        p.setDoseTimes(doseTimes);
 
         var saved = service.createAndPlan(p, patient);
         return ResponseEntity.ok(saved.getId());
     }
 
+    //Modification de la prescription
+
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@AuthenticationPrincipal String email, @PathVariable Long id, @RequestBody CreatePrescription req) {
+    public ResponseEntity<?> update(
+            @AuthenticationPrincipal String email,
+            @PathVariable Long id,
+            @RequestBody CreatePrescription req
+    ) {
         var user = users.findByEmail(email).orElseThrow();
         var doctor = doctors.findByUserId(user.getId()).orElseThrow();
-        var prescription = prescriptions.findById(id).orElseThrow();
-
-        if (!prescription.getDoctor().equals(doctor)) {
-            return ResponseEntity.status(403).body("Not your prescription");
-        }
-
-        prescription.setMedicationName(req.getMedicationName());
-        prescription.setDosage(req.getDosage());
-        prescription.setStartDate(req.getStartDate());
-        prescription.setEndDate(req.getEndDate());
-        prescription.setDoseTimes(req.getDoseTimes().stream()
-                .map(t -> DoseTime.builder().hour(t.getHour()).minute(t.getMinute()).build()).toList());
-
-        // Régénérer events si dates/horaires changent
-        service.generateEvents(prescription);
-        prescriptions.save(prescription);
-        return ResponseEntity.ok(prescription.getId());
+        var updated = service.update(id, req, doctor);
+        return ResponseEntity.ok(new PrescriptionDTO(
+                updated.getId(),
+                updated.getMedicationName(),
+                updated.getDosage(),
+                updated.getStartDate(),
+                updated.getEndDate(),
+                updated.getPatient().getUser().getFullName(),
+                updated.getPatient().getUser().getEmail(),
+                updated.getDoctor().getUser().getFullName(),
+                updated.getDoctor().getUser().getEmail(),
+                updated.getCreatedAt(),
+                updated.getDoseTimes().stream()
+                        .map(dt -> new PrescriptionDTO.HM(dt.getHour(), dt.getMinute()))
+                        .collect(Collectors.toList())
+        ));
     }
+
+    //Supression d'une prescription
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@AuthenticationPrincipal String email, @PathVariable Long id) {
         var user = users.findByEmail(email).orElseThrow();
         var doctor = doctors.findByUserId(user.getId()).orElseThrow();
-        var prescription = prescriptions.findById(id).orElseThrow();
-
-        if (!prescription.getDoctor().equals(doctor)) {
-            return ResponseEntity.status(403).body("Not your prescription");
-        }
-
-        prescriptions.delete(prescription);
+        service.delete(id, doctor);
         return ResponseEntity.ok().build();
     }
 
+    @Data
+    public static class PrescriptionDTO {
+        private final Long id;
+        private final String medicationName;
+        private final String dosage;
+        private final LocalDate startDate;
+        private final LocalDate endDate;
+        private final String patientName;
+        private final String patientEmail;
+        private final String doctorName;
+        private final String doctorEmail;
+        private final Instant createdAt;
+        private final List<HM> doseTimes;
+
+        @Data
+        public static class HM {
+            private final int hour;
+            private final int minute;
+        }
+    }
+
     // Endpoint pour consulter prescriptions par patient
+
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<?> getByPatient(@AuthenticationPrincipal String email, @PathVariable Long patientId) {
         var user = users.findByEmail(email).orElseThrow();
@@ -98,7 +134,25 @@ public class PrescriptionController {
         if (!prescriptions.existsByDoctorIdAndPatientId(doctor.getId(), patientId)) {
             return ResponseEntity.status(403).body("Patient not under your care");
         }
-        return ResponseEntity.ok(prescriptions.findByPatientIdOrderByCreatedAtDesc(patientId));
+        List<PrescriptionDTO> dtos = prescriptions.findByPatientIdOrderByCreatedAtDesc(patientId)
+                .stream()
+                .map(p -> new PrescriptionDTO(
+                        p.getId(),
+                        p.getMedicationName(),
+                        p.getDosage(),
+                        p.getStartDate(),
+                        p.getEndDate(),
+                        p.getPatient().getUser().getFullName(),
+                        p.getPatient().getUser().getEmail(),
+                        p.getDoctor().getUser().getFullName(),
+                        p.getDoctor().getUser().getEmail(),
+                        p.getCreatedAt(),
+                        p.getDoseTimes().stream()
+                                .map(dt -> new PrescriptionDTO.HM(dt.getHour(), dt.getMinute()))
+                                .collect(Collectors.toList())
+                ))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
     }
 
     //Ajouter une prescription par le scan d'un document
@@ -122,9 +176,11 @@ public class PrescriptionController {
         private String scanData;  // JSON ou text from scan
     }
 
+
+
     @Data
     public static class CreatePrescription {
-        @NotNull private Long patientId;  // Changé de doctorId à patientId
+        @NotNull private Long patientId;
         @NotBlank private String medicationName;
         private String dosage;
         @NotNull private LocalDate startDate;
@@ -132,4 +188,5 @@ public class PrescriptionController {
         @NotNull private List<HM> doseTimes;
         @Data public static class HM { @Min(0) @Max(23) private int hour; @Min(0) @Max(59) private int minute; }
     }
+
 }

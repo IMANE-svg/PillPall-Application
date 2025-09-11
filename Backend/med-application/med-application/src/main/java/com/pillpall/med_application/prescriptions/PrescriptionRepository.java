@@ -19,7 +19,7 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, Long
 
     int countByDoctorId(Long doctorId);
 
-    // ✅ Utilise createdAt qui existe maintenant
+
     @Query("SELECT COUNT(p) FROM Prescription p WHERE p.doctor.id = :doctorId AND p.createdAt >= :date")
     int countByDoctorIdAndCreatedAtAfter(@Param("doctorId") Long doctorId, @Param("date") Instant date);
 
@@ -44,12 +44,8 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, Long
     @Query("SELECT p FROM Prescription p WHERE p.doctor.id = :doctorId ORDER BY p.createdAt DESC")
     List<Prescription> findByDoctorIdOrderByCreatedAtDesc(@Param("doctorId") Long doctorId);
 
-    // Méthodes supplémentaires utiles
-    @Query("SELECT p FROM Prescription p WHERE p.patient.id = :patientId AND p.endDate >= CURRENT_DATE")
-    List<Prescription> findActiveByPatientId(@Param("patientId") Long patientId);
-
-    @Query("SELECT p FROM Prescription p WHERE p.doctor.id = :doctorId AND p.endDate >= CURRENT_DATE")
-    List<Prescription> findActiveByDoctorId(@Param("doctorId") Long doctorId);
+    @Query("SELECT p FROM Prescription p WHERE p.patient.id = :patientId AND p.startDate <= :to AND p.endDate >= :from")
+    List<Prescription> findByPatientIdAndDateRange(@Param("patientId") Long patientId, @Param("from") LocalDate from, @Param("to") LocalDate to);
 
     @Query("SELECT p FROM Prescription p WHERE p.patient.id = :patientId AND p.startDate <= :date AND p.endDate >= :date")
     List<Prescription> findByPatientIdAndDate(@Param("patientId") Long patientId, @Param("date") LocalDate date);

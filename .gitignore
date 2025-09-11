@@ -1,8 +1,14 @@
 # Secrets
-**/firebase-service-account.json
+Backend/med-application/med-application/src/main/resources/firebase-service-account.json
 **/.env
-backend/med-application/med-application/src/main/resources/application.properties
+Backend/med-application/med-application/src/main/resources/application.properties
 
 
 # Builds
 android/app/build/
+node_modules
+
+
+# Ignorer les fichiers générés ou temporaires
+target/
+*.log

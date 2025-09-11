@@ -74,6 +74,11 @@ public class ReminderService {
 
     private void logAttempt(IntakeEvent ev, String channel, boolean success, String details) {
         attempts.save(NotificationAttempt.builder()
-                .intakeEvent(ev).channel(channel).success(success).details(details).build());
+                .intakeEvent(ev)
+                .channel(channel)
+                .success(success)
+                .details(details)
+                .attemptAt(Instant.now())
+                .build());
     }
 }

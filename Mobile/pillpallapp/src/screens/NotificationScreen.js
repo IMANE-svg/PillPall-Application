@@ -4,13 +4,23 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { confirmIntake } from '../api/patient';
 
 const NotificationScreen = ({ route, navigation }) => {
-  const { intakeId, medicationName } = route.params;
+  const { intakeId, medication } = route.params || {};
 
   const handleConfirm = async () => {
+    console.log('Confirming intakeId:', intakeId, 'medication:', medication);
+    if (!intakeId) {
+      Alert.alert('Erreur', 'ID de prise manquant');
+      return;
+    }
     try {
       await confirmIntake(intakeId);
-      navigation.navigate('Patient', { screen: 'Prises' });
+      console.log('Intake confirmed, navigating to IntakesScreen');
+      navigation.navigate('Patient', { 
+        screen: 'Prises',
+        params: { confirmedIntake: { intakeId, confirmedAt: new Date().toISOString() } }
+      });
     } catch (error) {
+      console.error('Erreur confirmation:', error.response?.data || error.message);
       Alert.alert('Erreur', 'Échec de la confirmation');
     }
   };
@@ -18,9 +28,9 @@ const NotificationScreen = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>
-        C'est l'heure de prendre {medicationName} !
+        C'est l'heure de prendre {medication || 'votre médicament'} !
       </Text>
-      <Icon name="access-time" size={100} color="#007AFF" />
+      <Icon name="access-time" size={100} color="#1E40AF" />
       <TouchableOpacity style={styles.button} onPress={handleConfirm}>
         <Text style={styles.buttonText}>Pris</Text>
       </TouchableOpacity>

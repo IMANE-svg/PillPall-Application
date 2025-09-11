@@ -1,9 +1,9 @@
 import React from 'react';
-import Footer from '../components/Footer';
 import PatientHomeScreen from '../screens/patient/PatientHomeScreen';
 import MedicationsScreen from '../screens/patient/MedicationsScreen';
 import IntakesScreen from '../screens/patient/IntakesScreen';
 import ProfileScreen from '../screens/patient/ProfileScreen';
+import Footer from '../components/Footer';
 
 const screens = [
   { name: 'Accueil', component: PatientHomeScreen, icon: 'home' },
@@ -13,7 +13,7 @@ const screens = [
 ];
 
 const PatientNavigator = () => {
-  return <Footer screens={screens} role="patient" />;
+  return <Footer screens={screens} />;
 };
 
 export default PatientNavigator;

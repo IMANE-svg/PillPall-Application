@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, FlatList, Image, ScrollView, Modal, ActivityIndicator } from 'react-native';
 import { register } from '../../api/auth';
 import axios from 'axios';
+import Icon from 'react-native-vector-icons/MaterialIcons'; 
 
 const RegisterScreen = ({ navigation }) => {
   const [form, setForm] = useState({
@@ -11,7 +12,7 @@ const RegisterScreen = ({ navigation }) => {
     role: 'ROLE_PATIENT',
     specialtyId: null,
     doctorIds: [],
-    timezone: 'Africa/Casablanca'
+    timezone: 'Africa/Casablanca',
   });
   const [specialties, setSpecialties] = useState([]);
   const [doctors, setDoctors] = useState([]);
@@ -24,12 +25,9 @@ const RegisterScreen = ({ navigation }) => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
-        // Charger les médecins avec leurs spécialités
         const doctorsResponse = await axios.get('http://192.168.1.11:8080/api/doctor/public');
         console.log('Doctors response:', doctorsResponse.data);
         setDoctors(doctorsResponse.data || []);
-
       } catch (error) {
         console.error('Error fetching doctors:', error);
         Alert.alert('Erreur', 'Impossible de charger les médecins');
@@ -42,15 +40,11 @@ const RegisterScreen = ({ navigation }) => {
     fetchData();
   }, []);
 
-  // Charger les spécialités seulement quand on ouvre le picker
   const loadSpecialties = async () => {
     try {
       setSpecialtiesLoading(true);
       const response = await axios.get('http://192.168.1.11:8080/api/specialties/public');
-      
       console.log('Spécialités API response:', response.data);
-      
-      // Vérifier la structure de la réponse
       if (Array.isArray(response.data)) {
         setSpecialties(response.data);
         console.log('Spécialités chargées:', response.data.length);
@@ -74,7 +68,6 @@ const RegisterScreen = ({ navigation }) => {
 
   const handleRegister = async () => {
     try {
-      // Validation
       if (!form.email || !form.password || !form.fullName) {
         Alert.alert('Erreur', 'Veuillez remplir tous les champs obligatoires');
         return;
@@ -90,7 +83,6 @@ const RegisterScreen = ({ navigation }) => {
         return;
       }
 
-      // Préparer les données pour l'API
       const registerData = {
         email: form.email,
         password: form.password,
@@ -98,11 +90,10 @@ const RegisterScreen = ({ navigation }) => {
         role: form.role,
         timezone: form.timezone,
         specialtyId: form.role === 'ROLE_DOCTOR' ? form.specialtyId : null,
-        doctorIds: form.role === 'ROLE_PATIENT' ? form.doctorIds : []
+        doctorIds: form.role === 'ROLE_PATIENT' ? form.doctorIds : [],
       };
 
       console.log('Données d\'inscription:', registerData);
-      
       await register(registerData);
       Alert.alert('Succès', 'Inscription réussie ! Connectez-vous.');
       navigation.replace('Login');
@@ -122,7 +113,7 @@ const RegisterScreen = ({ navigation }) => {
       ...prev,
       doctorIds: prev.doctorIds.includes(doctorId)
         ? prev.doctorIds.filter(id => id !== doctorId)
-        : [...prev.doctorIds, doctorId]
+        : [...prev.doctorIds, doctorId],
     }));
   };
 
@@ -131,7 +122,7 @@ const RegisterScreen = ({ navigation }) => {
       ...form, 
       role, 
       specialtyId: null, 
-      doctorIds: [] 
+      doctorIds: [],
     });
     setShowRolePicker(false);
   };
@@ -165,32 +156,41 @@ const RegisterScreen = ({ navigation }) => {
       
       <Text style={styles.title}>Inscription</Text>
       
-      <TextInput
-        style={styles.input}
-        placeholder="Nom complet *"
-        placeholderTextColor="#666"
-        value={form.fullName}
-        onChangeText={(text) => setForm({ ...form, fullName: text })}
-      />
+      <View style={styles.inputContainer}>
+        <Icon name="person" size={24} color="#1E40AF" style={styles.icon} />
+        <TextInput
+          style={styles.input}
+          placeholder="Nom complet *"
+          placeholderTextColor="#666"
+          value={form.fullName}
+          onChangeText={(text) => setForm({ ...form, fullName: text })}
+        />
+      </View>
       
-      <TextInput
-        style={styles.input}
-        placeholder="Email *"
-        placeholderTextColor="#666"
-        value={form.email}
-        onChangeText={(text) => setForm({ ...form, email: text })}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+      <View style={styles.inputContainer}>
+        <Icon name="email" size={24} color="#1E40AF" style={styles.icon} />
+        <TextInput
+          style={styles.input}
+          placeholder="Email *"
+          placeholderTextColor="#666"
+          value={form.email}
+          onChangeText={(text) => setForm({ ...form, email: text })}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+      </View>
       
-      <TextInput
-        style={styles.input}
-        placeholder="Mot de passe *"
-        placeholderTextColor="#666"
-        value={form.password}
-        onChangeText={(text) => setForm({ ...form, password: text })}
-        secureTextEntry
-      />
+      <View style={styles.inputContainer}>
+        <Icon name="lock" size={24} color="#1E40AF" style={styles.icon} />
+        <TextInput
+          style={styles.input}
+          placeholder="Mot de passe *"
+          placeholderTextColor="#666"
+          value={form.password}
+          onChangeText={(text) => setForm({ ...form, password: text })}
+          secureTextEntry
+        />
+      </View>
       
       {/* Sélecteur de rôle */}
       <Text style={styles.label}>Rôle *</Text>
@@ -242,7 +242,7 @@ const RegisterScreen = ({ navigation }) => {
                 <TouchableOpacity
                   style={[
                     styles.doctorItem,
-                    form.doctorIds.includes(item.id) && styles.doctorItemSelected
+                    form.doctorIds.includes(item.id) && styles.doctorItemSelected,
                   ]}
                   onPress={() => toggleDoctorSelection(item.id)}
                 >
@@ -383,14 +383,23 @@ const styles = {
     marginBottom: 8,
     marginLeft: 4,
   },
-  input: {
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#1E40AF',
-    padding: 12,
-    marginBottom: 16,
     borderRadius: 6,
-    fontSize: 16,
+    marginBottom: 16,
     backgroundColor: '#FFFFFF',
+  },
+  icon: {
+    marginLeft: 10,
+  },
+  input: {
+    flex: 1,
+    padding: 12,
+    fontSize: 16,
+    color: '#000',
   },
   pickerButton: {
     borderWidth: 1,

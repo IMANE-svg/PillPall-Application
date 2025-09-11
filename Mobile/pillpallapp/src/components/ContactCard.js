@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   delete: {
-    color: '#DC2626', // rouge
+    color: '#DC2626',
   },
 });
 

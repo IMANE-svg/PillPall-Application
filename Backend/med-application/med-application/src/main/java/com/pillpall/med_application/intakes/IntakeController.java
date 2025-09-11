@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity; import org.springframework.web.b
 @RestController @RequestMapping("/intakes") @RequiredArgsConstructor
 public class IntakeController {
 
-    //Controleur de prise de Médicaments qfin de confirmer que le patient a pris son médicament
+    //Controleur de prise de Médicaments afin de confirmer que le patient a pris son médicament
     private final IntakeService service;
 
     @PostMapping("/{id}/confirm")

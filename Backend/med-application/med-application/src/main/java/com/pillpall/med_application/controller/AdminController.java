@@ -23,6 +23,7 @@ public class AdminController {
     private final DoctorProfileRepository doctorRepository;
     private final PatientProfileRepository patientProfileRepository;
     private final RoleRepository roleRepository;
+    private final SpecialtyRepository specialtyRepository;
 
 
     //Dashboard pour des statistiques
@@ -35,6 +36,7 @@ public class AdminController {
         stats.put("totalPatients", patientProfileRepository.count());
         stats.put("totalUsers", userRepository.count());
         stats.put("activeUsers", userRepository.countByEnabledTrue());
+        stats.put("totalSpecialties", specialtyRepository.count());
 
         return ResponseEntity.ok(stats);
     }
@@ -72,40 +74,34 @@ public class AdminController {
         return ResponseEntity.ok(Map.of("message", "Doctor updated"));
     }
 
+
+
     //La gestion des patients
 
+
+
+    //Récuperer les patients avec leurs medecins associés
     @GetMapping("/patients")
     public ResponseEntity<?> getAllPatients() {
         List<PatientProfile> patients = patientProfileRepository.findAll();
-
         List<PatientInfo> patientInfos = patients.stream()
                 .map(patient -> new PatientInfo(
                         patient.getId(),
+                        patient.getUser().getId(),
                         patient.getUser().getFullName(),
                         patient.getUser().getEmail(),
-                        patient.getBirthDate(),
-                        patient.getUser().isEnabled()
-                ))
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(patientInfos);
-    }
-
-    //Récuperer les patients selon les médecins
-    @GetMapping("/doctors/{doctorId}/patients")
-    public ResponseEntity<?> getPatientsByDoctor(@PathVariable Long doctorId) {
-        var patients = patientProfileRepository.findByDoctorId(doctorId);
-        List<PatientInfo> patientInfos = patients.stream()
-                .map(patient -> new PatientInfo(
-                        patient.getId(),
-                        patient.getUser().getFullName(),
-                        patient.getUser().getEmail(),
-                        patient.getBirthDate(),
-                        patient.getUser().isEnabled()
+                        patient.getDoctors().isEmpty()
+                                ? "Aucun médecin"
+                                : patient.getDoctors().stream()
+                                .filter(doctor -> doctor != null && doctor.getUser() != null)
+                                .map(doctor -> doctor.getUser().getFullName())
+                                .collect(Collectors.joining(", "))
                 ))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(patientInfos);
     }
+
+
 
     //Modification des patients
     @PutMapping("/patients/{id}")
@@ -118,6 +114,8 @@ public class AdminController {
         return ResponseEntity.ok(Map.of("message", "Patient updated"));
     }
 
+
+
     //Gestion des droits (Activer ou désactiver les roles des utilisateurs)
     @PutMapping("/users/{userId}/status")
     public ResponseEntity<?> updateUserStatus(@PathVariable Long userId, @RequestBody StatusUpdateRequest request) {
@@ -128,10 +126,29 @@ public class AdminController {
         return ResponseEntity.ok(Map.of("message", "User status updated successfully"));
     }
 
-    @DeleteMapping("/users/{userId}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
-        userRepository.deleteById(userId);
-        return ResponseEntity.ok(Map.of("message", "User deleted successfully"));
+
+//La liste de tous  les utilisateurs de l'application avec leur statut (enable/disablle)
+    @GetMapping("/users")
+    public List<UserInfo> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(user -> new UserInfo(
+                        user.getId(),
+                        user.getFullName(),
+                        user.getEmail(),
+                        user.getRoles().stream().map(Role::getName).collect(Collectors.toList()),
+                        user.isEnabled()
+                ))
+                .collect(Collectors.toList());
+    }
+
+
+    @Data
+    public static class UserInfo {
+        private final Long id;
+        private final String fullName;
+        private final String email;
+        private final List<String> roles;
+        private final boolean enabled;
     }
 
 
@@ -149,10 +166,18 @@ public class AdminController {
     @Data
     public static class PatientInfo {
         private final Long id;
+        private final Long userId;
         private final String fullName;
         private final String email;
-        private final java.time.LocalDate birthDate;
-        private final boolean enabled;
+        private final String doctorNames;
+
+        public PatientInfo(Long id, Long userId, String fullName, String email, String doctorNames) {
+            this.id = id;
+            this.userId = userId;
+            this.fullName = fullName;
+            this.email = email;
+            this.doctorNames = doctorNames.isEmpty() ? "Aucun médecin" : doctorNames;
+        }
     }
 
     @Data
@@ -173,3 +198,4 @@ public class AdminController {
         private java.time.LocalDate birthDate;
     }
 }
+

@@ -158,6 +158,6 @@ public class MlIntegrationService {
                 .confidence((Double) prediction.get("confidence"))
                 .build();
 
-        // Sauvegarder dans une table dédiée (à créer)
+
     }
 }

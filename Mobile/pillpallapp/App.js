@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from './src/screens/auth/LoginScreen';
@@ -7,21 +7,24 @@ import DoctorNavigator from './src/navigation/DoctorNavigator';
 import PatientNavigator from './src/navigation/PatientNavigator';
 import AdminNavigator from './src/navigation/AdminNavigator';
 import NotificationScreen from './src/screens/NotificationScreen';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { initFCM, handleBackgroundNotification } from './src/utils/fcm';
+import { initFCM, setNavigationRef } from './src/utils/fcm';
 import messaging from '@react-native-firebase/messaging';
-
 
 const Stack = createNativeStackNavigator();
 
 const App = () => {
+  const navigationRef = useRef(null);
+
   useEffect(() => {
     initFCM();
-    messaging().setBackgroundMessageHandler(handleBackgroundNotification);
+    setNavigationRef(navigationRef.current);
+    messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+      console.log('Background notification:', remoteMessage);
+    });
   }, []);
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator initialRouteName="Login">
         <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />

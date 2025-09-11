@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, FlatList, Alert, StyleSheet } 
 import Header from '../../components/Header';
 import { getSpecialties, addSpecialty, updateSpecialty, deleteSpecialty } from '../../api/admin';
 import { logout } from '../../utils/auth';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const ManageSpecialtiesScreen = ({ navigation }) => {
   const [specialties, setSpecialties] = useState([]);
@@ -11,10 +12,16 @@ const ManageSpecialtiesScreen = ({ navigation }) => {
   const [adding, setAdding] = useState(false);
 
   useEffect(() => {
-    getSpecialties().then((res) => setSpecialties(res.data)).catch(() => {});
+    getSpecialties()
+      .then((res) => setSpecialties(res.data))
+      .catch(() => Alert.alert('Erreur', 'Impossible de charger les spécialités'));
   }, []);
 
   const handleSubmit = async () => {
+    if (!form.name) {
+      Alert.alert('Erreur', 'Veuillez entrer un nom de spécialité');
+      return;
+    }
     try {
       if (editingId) {
         await updateSpecialty(editingId, form);
@@ -26,24 +33,18 @@ const ManageSpecialtiesScreen = ({ navigation }) => {
       setForm({ name: '' });
       setEditingId(null);
       setAdding(false);
+      Alert.alert('Succès', editingId ? 'Spécialité modifiée' : 'Spécialité ajoutée');
     } catch (error) {
       Alert.alert('Erreur', 'Échec de l’opération');
     }
   };
 
-  const handleDelete = async (id) => {
-    try {
-      await deleteSpecialty(id);
-      setSpecialties(specialties.filter((s) => s.id !== id));
-    } catch (error) {
-      Alert.alert('Erreur', 'Échec de la suppression');
-    }
-  };
+  
 
   return (
     <View style={styles.container}>
       <Header
-        title="PillPall"
+        title="Gestion des spécialités"
         onLogout={() => {
           logout();
           navigation.replace('Login');
@@ -51,19 +52,29 @@ const ManageSpecialtiesScreen = ({ navigation }) => {
       />
       <View style={styles.content}>
         {(adding || editingId) ? (
-          <View>
+          <View style={styles.form}>
             <TextInput
               style={styles.input}
               placeholder="Nom de la spécialité"
+              placeholderTextColor="#666666"
               value={form.name}
               onChangeText={(text) => setForm({ ...form, name: text })}
             />
-            <TouchableOpacity style={styles.buttonGreen} onPress={handleSubmit}>
+            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+              <Icon name="save" size={20} color="#FFFFFF" style={styles.buttonIcon} />
               <Text style={styles.buttonText}>{editingId ? 'Modifier' : 'Ajouter'}</Text>
             </TouchableOpacity>
           </View>
         ) : (
-          <TouchableOpacity style={styles.buttonBlue} onPress={() => setAdding(true)}>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => {
+              setAdding(true);
+              setEditingId(null);
+              setForm({ name: '' });
+            }}
+          >
+            <Icon name="add" size={20} color="#FFFFFF" style={styles.buttonIcon} />
             <Text style={styles.buttonText}>Ajouter spécialité</Text>
           </TouchableOpacity>
         )}
@@ -73,19 +84,18 @@ const ManageSpecialtiesScreen = ({ navigation }) => {
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <View style={styles.row}>
-              <Text>{item.name}</Text>
+              <Text style={styles.rowText}>{item.name}</Text>
               <View style={styles.actions}>
                 <TouchableOpacity
                   onPress={() => {
                     setEditingId(item.id);
+                    setAdding(false);
                     setForm({ name: item.name });
                   }}
                 >
-                  <Text style={[styles.actionText, styles.blueText]}>Modifier</Text>
+                  <Icon name="edit" size= {20} color="#1E40AF" />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleDelete(item.id)}>
-                  <Text style={[styles.actionText, styles.redText]}>Supprimer</Text>
-                </TouchableOpacity>
+                
               </View>
             </View>
           )}
@@ -103,50 +113,67 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
   },
+  form: {
+    marginBottom: 16,
+    padding: 12,
+    backgroundColor: '#F0F4F8',
+    borderRadius: 8,
+  },
   input: {
     borderWidth: 1,
     borderColor: '#1E40AF',
-    padding: 8,
-    marginBottom: 16,
+    padding: 10,
+    marginBottom: 12,
     borderRadius: 8,
+    fontSize: 16,
   },
-  buttonBlue: {
-    backgroundColor: '#1E40AF',
+  submitButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#10B981',
     padding: 12,
     borderRadius: 8,
-    marginBottom: 16,
   },
-  buttonGreen: {
-    backgroundColor: '#10B981',
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1E40AF',
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,
   },
   buttonText: {
     color: '#FFFFFF',
-    textAlign: 'center',
     fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  buttonIcon: {
+    marginRight: 8,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderColor: '#E5E7EB',
+    borderBottomColor: '#E5E7EB',
+    backgroundColor: '#F8F8F8',
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  rowText: {
+    fontSize: 16,
+    color: '#1E40AF',
+    fontWeight: '600',
   },
   actions: {
     flexDirection: 'row',
   },
-  actionText: {
-    fontSize: 16,
-    marginLeft: 8,
-    marginRight: 8,
-  },
-  blueText: {
-    color: '#1E40AF',
-  },
-  redText: {
-    color: '#EF4444',
+  actionIcon: {
+    marginLeft: 12,
   },
 });
 

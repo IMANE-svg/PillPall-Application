@@ -1,11 +1,19 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 const Tab = createBottomTabNavigator();
 
-const Footer = ({ screens }) => {
+const Footer = ({ screens = [] }) => {
+  if (!screens || screens.length === 0) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Erreur : Aucun écran configuré</Text>
+      </View>
+    );
+  }
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -36,6 +44,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#1E40AF',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#DC2626',
+    fontSize: 16,
   },
 });
 

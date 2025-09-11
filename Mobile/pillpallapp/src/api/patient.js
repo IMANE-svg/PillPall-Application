@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getAuthHeaders } from './auth';
 
-const API_URL = 'http://192.168.1.11:8080/api/patient';
+const API_URL = 'http://192.168.1.11:8080';
 
 const patientApi = axios.create({
   baseURL: API_URL,
@@ -9,17 +9,17 @@ const patientApi = axios.create({
 
 export const getPatientDashboard = async () => {
   const headers = await getAuthHeaders();
-  return patientApi.get('/dashboard', { headers });
+  return patientApi.get('/api/patient/dashboard', { headers });
 };
 
 export const getMedications = async () => {
   const headers = await getAuthHeaders();
-  return patientApi.get('/prescriptions', { headers });
+  return patientApi.get('/api/patient/prescriptions/active', { headers });
 };
 
 export const getIntakes = async () => {
   const headers = await getAuthHeaders();
-  return patientApi.get('/intakes', { headers });
+  return patientApi.get('/api/patient/history', { headers });
 };
 
 export const confirmIntake = async (intakeId) => {
@@ -29,40 +29,50 @@ export const confirmIntake = async (intakeId) => {
 
 export const getProfile = async () => {
   const headers = await getAuthHeaders();
-  return patientApi.get('/me', { headers });
+  return patientApi.get('/api/patient/me', { headers });
 };
 
 export const updateProfile = async (data) => {
   const headers = await getAuthHeaders();
-  return patientApi.put('/me', data, { headers });
+  return patientApi.put('/api/patient/me', data, { headers });
 };
 
 export const getContacts = async () => {
   const headers = await getAuthHeaders();
-  return patientApi.get('/contacts', { headers });
+  return patientApi.get('/users/me/contacts', { headers });
 };
 
 export const addContact = async (data) => {
   const headers = await getAuthHeaders();
-  return patientApi.post('/contacts', data, { headers });
+  return patientApi.post('/users/me/contacts', data, { headers });
 };
 
 export const updateContact = async (id, data) => {
   const headers = await getAuthHeaders();
-  return patientApi.put(`/contacts/${id}`, data, { headers });
+  return patientApi.put(`/users/me/contacts/${id}`, data, { headers });
 };
 
 export const deleteContact = async (id) => {
   const headers = await getAuthHeaders();
-  return patientApi.delete(`/contacts/${id}`, { headers });
+  return patientApi.delete(`/users/me/contacts/${id}`, { headers });
 };
 
 export const addDoctor = async (doctorId) => {
   const headers = await getAuthHeaders();
-  return patientApi.post(`/doctors/${doctorId}`, {}, { headers });
+  return patientApi.post(`/api/patient/doctors/${doctorId}`, {}, { headers });
 };
 
 export const removeDoctor = async (doctorId) => {
   const headers = await getAuthHeaders();
-  return patientApi.delete(`/doctors/${doctorId}`, { headers });
+  return patientApi.delete(`/api/patient/doctors/${doctorId}`, { headers });
+};
+
+export const getPublicDoctors = async () => {
+  const headers = await getAuthHeaders();
+  return patientApi.get('/api/doctor/public', { headers });
+};
+
+export const getPatientDoctors = async () => {
+  const headers = await getAuthHeaders();
+  return patientApi.get('/api/patient/doctors', { headers });
 };
